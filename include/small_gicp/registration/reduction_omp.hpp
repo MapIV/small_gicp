@@ -7,7 +7,11 @@
 namespace small_gicp {
 
 #ifndef _OPENMP
+#ifdef _WIN32
+#pragma message(__FILE__, " OpenMP is not available.Parallel reduction will be disabled.")
+#else
 #warning "OpenMP is not available. Parallel reduction will be disabled."
+#endif
 inline int omp_get_thread_num() {
   return 0;
 }
@@ -29,7 +33,7 @@ struct ParallelReductionOMP {
     std::vector<Eigen::Matrix<double, 6, 1>> bs(num_threads, Eigen::Matrix<double, 6, 1>::Zero());
     std::vector<double> es(num_threads, 0.0);
 
-#pragma omp parallel for num_threads(num_threads) schedule(guided, 8)
+#pragma omp parallel for num_threads(num_threads)
     for (std::int64_t i = 0; i < factors.size(); i++) {
       Eigen::Matrix<double, 6, 6> H;
       Eigen::Matrix<double, 6, 1> b;
@@ -58,7 +62,7 @@ struct ParallelReductionOMP {
   double error(const TargetPointCloud& target, const SourcePointCloud& source, const Eigen::Isometry3d& T, std::vector<Factor>& factors) const {
     double sum_e = 0.0;
 
-#pragma omp parallel for num_threads(num_threads) schedule(guided, 8) reduction(+ : sum_e)
+#pragma omp parallel for num_threads(num_threads) reduction(+ : sum_e)
     for (std::int64_t i = 0; i < factors.size(); i++) {
       sum_e += factors[i].error(target, source, T);
     }

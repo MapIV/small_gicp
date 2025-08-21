@@ -97,7 +97,10 @@ endif()
 
 if(MSVC)
   add_compile_definitions(_USE_MATH_DEFINES)
-  # add_compile_options(/openmp:llvm)
+  add_compile_options(/bigobj)
+  if(BUILD_WITH_OPENMP)
+    add_compile_options(/openmp:llvm)
+  endif()
 endif()
 
 ##############
@@ -111,8 +114,8 @@ if(ENABLE_COVERAGE)
   find_program(GENHTML genhtml REQUIRED)
 
   add_custom_target(coverage
-    COMMAND ${LCOV} --directory . --capture --output-file coverage.info
-    COMMAND ${LCOV} --remove coverage.info -o coverage.info '/usr/*'
+    COMMAND ${LCOV} --directory . --capture --output-file coverage.info --ignore-errors mismatch
+    COMMAND ${LCOV} --remove coverage.info -o coverage.info '/usr/*' --ignore-errors mismatch
     COMMAND ${GENHTML} --demangle-cpp -o coverage coverage.info
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 endif()
@@ -247,6 +250,12 @@ if(BUILD_EXAMPLES)
       TBB::tbbmalloc
       PCL::PCL
     )
+   if(MSVC)
+     set_target_properties(${EXAMPLE_NAME}
+                           PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
+                           "${CMAKE_SOURCE_DIR}"
+     )
+   endif()
   endforeach()
 endif()
 
@@ -273,6 +282,13 @@ if(BUILD_TESTS)
     )
 
     gtest_discover_tests(${TEST_NAME} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+   if(MSVC)
+     set_target_properties(${TEST_NAME}
+                           PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
+                           "${CMAKE_SOURCE_DIR}"
+     )
+   endif()
   endforeach()
 endif()
 
