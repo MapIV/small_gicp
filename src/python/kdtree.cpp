@@ -129,7 +129,7 @@ void define_kdtree(py::module& m) {
         std::vector<size_t> k_indices(pts.rows(), -1);
         std::vector<double> k_sq_dists(pts.rows(), std::numeric_limits<double>::max());
 
-#pragma omp parallel for num_threads(num_threads) schedule(guided, 4)
+#pragma omp parallel for num_threads(num_threads)
         for (int i = 0; i < pts.rows(); ++i) {
           const size_t found = traits::nearest_neighbor_search(kdtree, Eigen::Vector4d(pts(i, 0), pts(i, 1), pts(i, 2), 1.0), &k_indices[i], &k_sq_dists[i]);
           if (!found) {
@@ -172,7 +172,7 @@ void define_kdtree(py::module& m) {
         k_indices.setConstant(-1);
         k_sq_dists.setConstant(std::numeric_limits<double>::max());
 
-#pragma omp parallel for num_threads(num_threads) schedule(guided, 4)
+#pragma omp parallel for num_threads(num_threads)
         for (int i = 0; i < pts.rows(); ++i) {
           size_t* k_indices_begin = k_indices.data() + i * k;
           double* k_sq_dists_begin = k_sq_dists.data() + i * k;
